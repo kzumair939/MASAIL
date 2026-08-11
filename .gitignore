@@ -16,9 +16,27 @@ frontend/*.local
 
 ### Env & secrets ###
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 !*.env.example
+*.pem
+*.key
+*.crt
+*.pfx
+*.p12
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+service-account*.json
+credentials.json
+application-secret*
+
+### Database files ###
+*.sqlite
+*.sqlite3
+*.db
+*.dump
 
 ### IDE ###
 .idea/
