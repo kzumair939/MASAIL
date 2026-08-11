@@ -1,0 +1,21 @@
+* text=auto eol=lf
+
+*.java text
+*.ts text
+*.tsx text
+*.js text
+*.jsx text
+*.json text
+*.yml text
+*.yaml text
+*.md text
+*.sql text
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.jar binary

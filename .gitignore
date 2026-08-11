@@ -1,0 +1,37 @@
+### Backend (Java/Maven) ###
+backend/target/
+backend/.mvn/
+backend/*.iml
+backend/HELP.md
+*.class
+*.jar
+!*/wrapper/maven-wrapper.jar
+
+### Frontend (Node/Vite) ###
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/*.local
+
+### Env & secrets ###
+.env
+.env.local
+.env.*.local
+!*.env.example
+
+### IDE ###
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+### Logs ###
+*.log
+logs/
+
+### Docker ###
+infra/postgres/data/
+
+### OS ###
+Thumbs.db
