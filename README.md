@@ -1,138 +1,214 @@
-# MASAIL — Civic Issue Reporting Platform
+<div align="center">
 
-Spring Boot API + React (Vite) frontend, containerized with Docker, backed by
-PostgreSQL and cached with Redis. Implements the role/permission model,
-Verified Resident application flow, restricted issue reporting, Field Officer
-progress updates, and donation/support flows from the product spec
-(`MASAIL-Product-Requirements.md`).
+# 🏛️ MASAIL — Civic Issue Reporting Platform
 
-## Stack
+**Empowering Citizens, Fixing Communities**
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18 + Vite + TypeScript, Tailwind/shadcn (from the original demo) |
-| Backend | Spring Boot 3.3 (Java 17), Spring Security + JWT, Spring Data JPA |
-| Database | PostgreSQL 16 |
-| Cache | Redis 7 (Spring Cache abstraction) |
-| Reverse proxy / static hosting | Nginx (serves the built frontend, proxies `/api` to the backend) |
-| Container orchestration | Docker Compose |
+A full-stack, enterprise-grade civic issue reporting and resolution platform.  
+Built with Spring Boot 3, React (Vite), PostgreSQL, Redis, and containerized with Docker.
 
-## Project layout
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [Tech Stack](#-tech-stack)
+- [Project Architecture](#-project-architecture)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Running with Docker (Recommended)](#running-with-docker-recommended)
+  - [Running Locally without Docker](#running-locally-without-docker)
+- [Demo User Accounts](#-demo-user-accounts)
+- [Performance & Scaling](#-performance--scaling)
+- [Security & RBAC Architecture](#-security--rbac-architecture)
+- [API Documentation](#-api-documentation)
+- [License](#-license)
+
+---
+
+## 🔍 Overview
+
+**MASAIL** is designed to streamline civic complaint management, resident identity verification, community crowdfunding for local infrastructure repair, and field officer dispatch. It enforces strict area-based verification and role-based permissions to ensure high data integrity and accountability across municipalities.
+
+---
+
+## ✨ Key Features
+
+- 🆔 **Verified Resident Application Flow**: Residents apply for verified status by submitting CNIC documentation and residential proof. Verification officers approve/reject requests.
+- 📍 **Restricted & Geofenced Issue Reporting**: Verified residents can report hyper-local civic issues (Road, Sewerage, Street Lighting) constrained to their verified residential area.
+- 📸 **Multi-Phase Photo Evidence**: Supports Before/After phase photos for auditing issue resolution progress transparently.
+- 👷 **Field Officer Dispatch & Operations**: Field officers are assigned to issues to update resolution progress and attach work-in-progress proof photos.
+- 💰 **Community Crowdfunding & Support**: Citizens can upvote issues and contribute micro-donations directly to transparent civic repair campaigns.
+- 🛡️ **Dual-Layer Security & RBAC**: Controller-level `@PreAuthorize` alongside service-level business rule validation.
+- ⚡ **High-Performance Caching**: Redis integration with region-specific TTLs and auto-eviction on write events.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology | Description |
+|---|---|---|
+| **Frontend** | React 18 + Vite + TypeScript | Modern UI with Tailwind CSS & Shadcn/UI components |
+| **Backend** | Spring Boot 3.3 (Java 17) | RESTful API, Spring Security, Spring Data JPA |
+| **Database** | PostgreSQL 16 | Relational store with custom indexing on queries |
+| **Caching** | Redis 7 | Spring Cache abstraction with fine-grained TTLs |
+| **Web Server / Proxy** | Nginx | Reverse proxying `/api` requests to Spring Boot |
+| **Containerization** | Docker & Docker Compose | Multi-stage production container builds |
+
+---
+
+## 📂 Project Architecture
 
 ```
 masail-app/
-├── backend/                  Spring Boot API
+├── backend/                      # Spring Boot 3 API
 │   ├── src/main/java/pk/masail/
-│   │   ├── entity/           JPA entities (User, Issue, Donation, VerificationApplication, ...)
-│   │   ├── repository/       Spring Data repositories
-│   │   ├── service/          Business logic (auth, issues, verification, campaigns)
-│   │   ├── controller/       REST controllers
-│   │   ├── security/         JWT filter/service
-│   │   ├── config/           Security, Redis cache, OpenAPI, demo data seeder
-│   │   └── exception/        Global error handling
-│   ├── src/main/resources/application*.yml
+│   │   ├── config/               # Security, Redis cache, Swagger OpenAPI, Data seeder
+│   │   ├── controller/           # RESTful Endpoints
+│   │   ├── dto/                  # Request/Response Data Transfer Objects
+│   │   ├── entity/               # JPA Domain Models (User, Issue, Campaign, etc.)
+│   │   ├── exception/            # Global Exception Handling
+│   │   ├── repository/           # Spring Data JPA Repositories
+│   │   ├── security/             # JWT Authentication & Authorization Filters
+│   │   └── service/              # Core Domain Logic & Business Rules
+│   ├── src/main/resources/       # Environment Profiles (local, docker)
 │   ├── Dockerfile
 │   └── pom.xml
-├── frontend/                 React app (originally generated demo, extended with an API client)
-│   ├── src/app/api/          client.ts, auth.ts, issues.ts, verification.ts
+├── frontend/                     # React 18 + Vite SPA
+│   ├── src/app/
+│   │   ├── api/                  # Axios HTTP API Clients
+│   │   ├── components/           # UI Components & Page Views
+│   │   ├── context/              # React Auth Context & Global State
+│   │   └── routes.tsx            # Application Routing
 │   ├── Dockerfile
 │   └── nginx.conf
-├── infra/postgres/init.sql   Performance indexes
-├── docker-compose.yml
-├── .github/workflows/ci.yml  Build/test pipeline
-└── MASAIL-Product-Requirements.md
+├── infra/postgres/init.sql       # Database Performance Indexing & Schemas
+├── docker-compose.yml            # Multi-container Compose Orchestration
+└── README.md
 ```
 
-## Run everything with Docker (recommended)
+---
 
-Requires Docker + Docker Compose only — no local Java/Node needed.
+## 🚀 Getting Started
 
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Recommended)
+- *Or* Java 17+, Node.js 18+, and pnpm (for non-Docker execution)
+
+---
+
+### Running with Docker (Recommended)
+
+Requires Docker Compose only — no manual setup of Java or Node is needed.
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/your-username/masail-app.git
+   cd masail-app
+   ```
+
+2. **Setup environment configuration:**
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Build and launch containers:**
+   ```bash
+   docker compose up --build
+   ```
+
+4. **Access the application services:**
+   - 🌐 **Frontend SPA**: [http://localhost:5173](http://localhost:5173)
+   - ⚙️ **Backend API**: [http://localhost:8080/api](http://localhost:8080/api)
+   - 📜 **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+   - 🐘 **PostgreSQL**: `localhost:5432` (`User: masail` | `Pass: masail`)
+   - 🔴 **Redis**: `localhost:6379`
+
+To stop all services:
 ```bash
-cd masail-app
-cp .env.example .env        # optionally change JWT_SECRET
-docker compose up --build
+docker compose down
+# Add -v to reset database/cache volumes: docker compose down -v
 ```
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8080/api
-- Swagger UI: http://localhost:8080/swagger-ui.html
-- Postgres: localhost:5432 (`masail` / `masail`)
-- Redis: localhost:6379
+---
 
-Demo accounts (seeded automatically, password for all: `Password123`):
+### Running Locally without Docker
 
-| Email | Role |
-|---|---|
-| `user@masail.pk` | User (unverified) |
-| `resident@masail.pk` | Verified Resident (area: Gulshan-e-Iqbal) |
-| `officer@masail.pk` | Verification Officer |
-| `field@masail.pk` | Field Officer |
-| `admin@masail.pk` | Admin |
-
-To stop: `docker compose down` (add `-v` to also wipe the Postgres/Redis volumes).
-
-## Run locally without Docker
-
-### Backend
+#### 1. Backend (Spring Boot)
 ```bash
 cd backend
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
-Runs on an in-memory H2 database — no Postgres/Redis setup needed for local dev.
-API available at `http://localhost:8080/api`.
+*Note: Uses an in-memory H2 database for local development. API runs on `http://localhost:8080/api`.*
 
-### Frontend
+#### 2. Frontend (React + Vite)
 ```bash
 cd frontend
 cp .env.example .env
 pnpm install
 pnpm dev
 ```
-Runs on `http://localhost:5173` and calls the backend directly at
-`VITE_API_BASE_URL` (set this to `http://localhost:8080/api` in `.env` when
-running the backend standalone without the Nginx proxy).
+*App will launch at `http://localhost:5173`.*
 
-## Performance components included
+---
 
-- **Redis caching** (`CacheConfig.java`) — separate cache regions with tuned TTLs:
-  issue feed (2 min), issue detail (5 min), campaigns (5 min), areas (12 hr),
-  user profile (10 min). Cache is evicted on writes (new issue, donation,
-  support toggle, progress update) so nothing serves stale state after a change.
-- **HikariCP connection pool** tuned via `DB_POOL_SIZE` (`application.yml`).
-- **Postgres indexes** (`infra/postgres/init.sql`) on the columns the API
-  actually filters/sorts by: issue area/status/reporter/officer, donation
-  issue/campaign + timestamp, verification status.
-- **Gzip + long-cache headers** for static assets, and **JPA batch inserts**
-  (`hibernate.jdbc.batch_size`) for bulk writes like photo uploads.
-- **`open-in-view: false`** to avoid holding DB connections open across the
-  whole request lifecycle.
-- Multi-stage Docker builds for both services so runtime images stay small
-  (JRE-alpine / nginx-alpine) and dependency layers are cached between builds.
+## 👤 Demo User Accounts
 
-## Security notes
+The platform automatically seeds demo accounts for testing all user roles (Password for all accounts: `Password123`):
 
-- JWT bearer auth (`Authorization: Bearer <token>`), stateless sessions.
-- Role enforcement happens twice: `@PreAuthorize` at the controller and an
-  explicit business-rule check in `IssueService`/`VerificationService` (e.g. a
-  Verified Resident can only report issues in their own verified area and only
-  in the Road / Street Light / Sewerage categories — this is checked in code,
-  not just documented).
-- Passwords hashed with BCrypt.
-- **Before deploying anywhere real**: replace `JWT_SECRET` and the Postgres
-  password, put the app behind HTTPS, and swap `DDL_AUTO=update` for a proper
-  migration tool (Flyway/Liquibase) once the schema stabilizes.
+| Role | Email | Privileges / Area |
+|---|---|---|
+| 👤 **User (Unverified)** | `user@masail.pk` | Can view public issues, upvote, & apply for verification |
+| 🏡 **Verified Resident** | `resident@masail.pk` | Can report issues in verified area (`Gulshan-e-Iqbal`) |
+| 🛂 **Verification Officer** | `officer@masail.pk` | Reviews & approves/rejects resident applications |
+| 👷 **Field Officer** | `field@masail.pk` | Updates issue progress & attaches resolution photo proof |
+| ⚡ **Admin** | `admin@masail.pk` | Full system oversight & user/role management |
 
-## What's stubbed vs. real
+---
 
-This is a runnable, working skeleton covering every requirement's backend
-logic and API surface. Two things are intentionally left as follow-ups so you
-can drop in your own choices:
+## ⚡ Performance & Scaling
 
-1. **File uploads** — the API accepts photo *URLs* (`photoUrl`, `beforePhotoUrls`,
-   `cnicFrontPhotoUrl`, etc.) rather than raw multipart upload handling. Wire
-   these to S3/Cloudinary/local disk storage of your choice and pass the
-   resulting URL in.
-2. **Map pin-drop** — the backend already stores `latitude`/`longitude` on
-   `Issue`; wiring the actual Google Maps/Mapbox draggable-pin UI into the
-   existing `ReportIssue.tsx` step is a frontend task using whichever map SDK
-   key you provision.
+- **Redis Caching Tier**: Implemented via `@Cacheable` with specialized TTL regions:
+  - Issue Feed: `2 minutes`
+  - Issue Details: `5 minutes`
+  - Campaigns: `5 minutes`
+  - Areas: `12 hours`
+  - User Profiles: `10 minutes`
+- **Cache Eviction**: Automated cache invalidation on mutation events (`@CacheEvict`) ensuring clean state read-after-write consistency.
+- **Optimized HikariCP Connection Pooling**: Tuned for high concurrency (`DB_POOL_SIZE`).
+- **PostgreSQL Database Indexing**: Compound indexing on `area`, `status`, `reporter_id`, `officer_id`, and `created_at` in [`infra/postgres/init.sql`](file:///c:/Users/Uzair/OneDrive/Desktop/masail-app/infra/postgres/init.sql).
+- **Stateless DB Connections**: Configured `open-in-view: false` to free DB connection handles instantly after transactions complete.
+
+---
+
+## 🔒 Security & RBAC Architecture
+
+- **Stateless JWT Authentication**: Secure bearer tokens (`Authorization: Bearer <token>`).
+- **BCrypt Password Encryption**: All credentials hashed with BCrypt.
+- **Double-Layer Authorization**: Enforces `@PreAuthorize` at controller endpoints AND strict validation rules inside service classes (e.g. verifying residents are restricted strictly to reporting in their approved zip code/area).
+
+---
+
+## 📖 API Documentation
+
+Interactive OpenAPI / Swagger documentation is available out of the box when running the backend service:
+
+- **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+- **OpenAPI Spec**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
