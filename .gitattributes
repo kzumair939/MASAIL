@@ -19,3 +19,7 @@
 *.woff binary
 *.woff2 binary
 *.jar binary
+
+# GitHub Linguist Overrides (Java ~75-80%, TypeScript ~20-25%)
+frontend/src/app/components/ui/** linguist-vendored=true
+frontend/src/app/components/pages/** linguist-vendored=true
