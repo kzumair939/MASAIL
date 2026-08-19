@@ -20,6 +20,15 @@
 *.woff2 binary
 *.jar binary
 
-# GitHub Linguist Overrides (Java ~75-80%, TypeScript ~20-25%)
-frontend/src/app/components/ui/** linguist-vendored=true
-frontend/src/app/components/pages/** linguist-vendored=true
+# GitHub Linguist Overrides
+# Exclude frontend TypeScript, TSX, JS, CSS, and HTML from language statistics
+# so GitHub recognizes and displays Java as the primary language.
+
+frontend/** linguist-detectable=false
+*.ts linguist-detectable=false
+*.tsx linguist-detectable=false
+*.js linguist-detectable=false
+*.jsx linguist-detectable=false
+*.css linguist-detectable=false
+*.html linguist-detectable=false
+
